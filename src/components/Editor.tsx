@@ -51,42 +51,20 @@ export default function Editor({ documentId, initialContent }: EditorProps) {
   }, [documentId]);
 
   if (!ySetup) {
-    return <div className="text-[#555] font-mono text-[11px] uppercase tracking-widest min-h-[500px]">Connecting to mesh...</div>;
+    return <div className="text-[#555] font-mono text-[11px] uppercase tracking-widest min-h-[500px]">Initialising Doc...</div>;
   }
 
   return <TiptapEditor documentId={documentId} initialContent={initialContent} ydoc={ySetup.ydoc} provider={ySetup.provider} />;
 }
 
+import { useRef } from 'react';
+
 function TiptapEditor({ documentId, initialContent, ydoc, provider }: EditorProps & { ydoc: Y.Doc, provider: WebrtcProvider }) {
-  const updateContent = useMutation(api.documents.updateDocument);
-  const [status, setStatus] = useState("Connecting...");
+  const [status, setStatus] = useState("Syncing...");
+  const hasInitialized = useRef(false);
 
   // Sync with Convex for reliable cross-device persistence
   useYConvexSync(api.yconvex as any, documentId, ydoc);
-
-  useEffect(() => {
-    // Generate distinct greys/whites for developer cursors, no neon colors!
-    const colors = ["#ffffff", "#cccccc", "#999999", "#aaaaaa", "#dddddd"];
-    const cursorColor = colors[Math.floor(Math.random() * colors.length)];
-    const username = `U-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
-    
-    provider.awareness.setLocalStateField('user', {
-      name: username,
-      color: cursorColor,
-    });
-
-    const handleSynced = (state: { synced: boolean }) => {
-      setStatus(state.synced ? 'SYNCED' : 'AWAIT_SYNC');
-    };
-
-    provider.on('synced', handleSynced);
-    
-    // We rely on the event listener above to set the status
-
-    return () => {
-      provider.off('synced', handleSynced);
-    };
-  }, [provider]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -100,7 +78,7 @@ function TiptapEditor({ documentId, initialContent, ydoc, provider }: EditorProp
       CollaborationCaret.configure({
         provider: provider,
         user: {
-          name: 'Anonymous',
+          name: `U-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`,
           color: randomColor(),
         },
       }),
@@ -110,25 +88,27 @@ function TiptapEditor({ documentId, initialContent, ydoc, provider }: EditorProp
         class: 'prose prose-invert max-w-none focus:outline-none min-h-[500px] py-[24px]',
       },
     },
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      // Debounce saving to convex
-      const timeoutId = setTimeout(() => {
-        updateContent({ id: documentId, content: html }).catch(console.error);
-      }, 1000);
-      return () => clearTimeout(timeoutId);
-    },
   });
 
+  // Handle initial content fallback - only if Doc is empty after a grace period
   useEffect(() => {
-    if (editor && initialContent && editor.getText() === "") {
-      editor.commands.setContent(initialContent);
-    }
+    if (!editor || hasInitialized.current) return;
+
+    const timeout = setTimeout(() => {
+      if (editor.getText().trim() === "" && initialContent) {
+        editor.commands.setContent(initialContent);
+      }
+      hasInitialized.current = true;
+      setStatus("Synced");
+    }, 1000); // Wait 1s for y-convex to bring in remote data
+
+    return () => clearTimeout(timeout);
   }, [editor, initialContent]);
 
   if (!editor) {
     return <div className="text-[#555] font-mono text-[11px] uppercase tracking-widest min-h-[500px]">Initialising Editor...</div>;
   }
+
 
   return (
     <div className="flex flex-col w-full">

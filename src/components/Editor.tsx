@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import randomColor from 'randomcolor';
+import { useYConvexSync } from 'y-convex/react';
 import { Id } from '@/convex/_generated/dataModel';
 import { Bold, Italic, Heading1, Heading2, List } from 'lucide-react';
 
@@ -24,7 +25,20 @@ export default function Editor({ documentId, initialContent }: EditorProps) {
   useEffect(() => {
     const ydoc = new Y.Doc();
     const provider = new WebrtcProvider(`workspace-doc-${documentId}`, ydoc, {
-      signaling: ['wss://signaling.yjs.dev', 'wss://y-webrtc-signaling-eu.herokuapp.com']
+      signaling: [
+        'wss://signaling.yjs.dev', 
+        'wss://y-webrtc-signaling-eu.herokuapp.com',
+        'wss://y-webrtc-signaling-us.herokuapp.com'
+      ],
+      peerOpts: {
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      }
     });
     
     setYSetup({ ydoc, provider });
@@ -47,6 +61,9 @@ function TiptapEditor({ documentId, initialContent, ydoc, provider }: EditorProp
   const updateContent = useMutation(api.documents.updateDocument);
   const [status, setStatus] = useState("Connecting...");
 
+  // Sync with Convex for reliable cross-device persistence
+  useYConvexSync(api.yconvex as any, documentId, ydoc);
+
   useEffect(() => {
     // Generate distinct greys/whites for developer cursors, no neon colors!
     const colors = ["#ffffff", "#cccccc", "#999999", "#aaaaaa", "#dddddd"];
@@ -65,7 +82,6 @@ function TiptapEditor({ documentId, initialContent, ydoc, provider }: EditorProp
     provider.on('synced', handleSynced);
     
     // We rely on the event listener above to set the status
-
 
     return () => {
       provider.off('synced', handleSynced);

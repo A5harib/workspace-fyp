@@ -9,6 +9,7 @@
  */
 
 import type * as documents from "../documents.js";
+import type * as yconvex from "../yconvex.js";
 
 import type {
   ApiFromModules,
@@ -18,6 +19,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   documents: typeof documents;
+  yconvex: typeof yconvex;
 }>;
 
 /**
@@ -46,4 +48,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  yconvex: import("y-convex/_generated/component.js").ComponentApi<"yconvex">;
+};

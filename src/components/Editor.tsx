@@ -64,9 +64,8 @@ function TiptapEditor({ documentId, initialContent, ydoc, provider }: EditorProp
 
     provider.on('synced', handleSynced);
     
-    if (provider.synced) {
-      setStatus('SYNCED');
-    }
+    // We rely on the event listener above to set the status
+
 
     return () => {
       provider.off('synced', handleSynced);
@@ -77,7 +76,7 @@ function TiptapEditor({ documentId, initialContent, ydoc, provider }: EditorProp
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
-        history: false,
+        // history is no longer part of StarterKit in v3
       }),
       Collaboration.configure({
         document: ydoc,

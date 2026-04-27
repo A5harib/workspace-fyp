@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-surface-base: #000000;
+  --color-surface-raised: #0a0a0a;
+  --color-surface-hover: #141414;
+  --color-border-subtle: #1c1c1c;
+  --color-border-strong: #333333;
+  --color-text-primary: #ededed;
+  --color-text-secondary: #888888;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface-base);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    /* Technical Grid */
+    background-image: 
+      linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+  }
+}
+
+/* UI Utilities */
+@layer components {
+  .tech-panel {
+    background-color: var(--color-surface-raised);
+    border: 1px solid var(--color-border-strong);
+  }
+  .tech-button {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-strong);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition: all 0.15s ease;
+  }
+  .tech-button:hover {
+    background-color: var(--color-surface-hover);
+    border-color: #555;
+  }
+  .tech-input {
+    background-color: var(--color-surface-base);
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-text-primary);
+  }
+}
+
+/* Editor Overrides */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror p {
+  color: #a1a1aa;
+  line-height: 1.7;
+  margin-top: 1.2em;
+  margin-bottom: 1.2em;
+  font-size: 15px;
+}
+
+.ProseMirror h1 {
+  font-size: 32px;
+  font-weight: 500;
+  color: #ffffff;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  letter-spacing: -0.03em;
+}
+
+.ProseMirror h2 {
+  font-size: 24px;
+  font-weight: 500;
+  color: #e5e5e5;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  letter-spacing: -0.02em;
+}
+
+.collaboration-cursor__caret {
+  border-left: 2px solid;
+  margin-left: -1px;
+  position: relative;
+  word-break: normal;
+  pointer-events: none;
+}
+
+.collaboration-cursor__label {
+  border-radius: 0;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: monospace;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  position: absolute;
+  top: -1.6em;
+  left: -2px;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
